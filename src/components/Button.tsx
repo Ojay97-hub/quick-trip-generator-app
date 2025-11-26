@@ -3,7 +3,6 @@ import { TouchableOpacity, Text, ActivityIndicator, TouchableOpacityProps, View 
 import { styled } from 'nativewind';
 
 const StyledTouchableOpacity = styled(TouchableOpacity);
-const StyledText = styled(Text);
 
 interface ButtonProps extends TouchableOpacityProps {
   title: string;
@@ -28,9 +27,9 @@ export const Button = ({
   const getBaseStyles = () => {
     switch (variant) {
       case 'primary':
-        return 'bg-secondary border-secondary';
-      case 'secondary':
         return 'bg-primary border-primary';
+      case 'secondary':
+        return 'bg-secondary border-secondary';
       case 'outline':
         return 'bg-transparent border-secondary border-2';
       case 'ghost':
@@ -92,9 +91,9 @@ export const Button = ({
       ) : (
         <>
           {icon}
-          <StyledText className={`font-bodyBold text-center ${getTextStyles()} ${getTextSizeStyles()} ${icon ? 'ml-2' : ''}`}>
+          <Text className={`font-bodyBold text-center ${getTextStyles()} ${getTextSizeStyles()} ${icon ? 'ml-2' : ''}`}>
             {title}
-          </StyledText>
+          </Text>
         </>
       )}
     </StyledTouchableOpacity>

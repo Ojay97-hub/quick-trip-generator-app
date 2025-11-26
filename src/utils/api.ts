@@ -312,6 +312,24 @@ const getDefaultImage = (location: string): string => {
   return 'https://images.unsplash.com/photo-1516483638261-f4dbaf036963';
 };
 
+// Local-only random fact generator to avoid extra Claude calls and rate limits
+export const generateRandomFact = async (): Promise<string> => {
+  const fallbacks = [
+    'The UK has more castles per capita than almost any other country in Europe.',
+    'Bath was a major spa resort for the Roman Empire and remains one of the best-preserved Roman sites in Britain.',
+    'Edinburgh Castle sits atop an extinct volcano and has been a royal residence since the 12th century.',
+    'York’s city walls are the longest medieval town walls in England, stretching nearly 3 miles.',
+    'The Bodleian Library in Oxford is one of the oldest libraries in Europe.',
+    'The Tower of London has been home to the Crown Jewels for centuries.',
+    'The Lake District inspired many of the UK’s most famous poets.',
+    'Brighton’s Royal Pavilion was built as a seaside retreat for King George IV.',
+    'Cambridge and Oxford are two of the oldest universities in the world.',
+    'Snowdonia National Park in Wales has some of the UK’s most dramatic mountain scenery.'
+  ];
+
+  return fallbacks[Math.floor(Math.random() * fallbacks.length)];
+};
+
 const mockTripGenerator = (preferences: TripPreferences): Promise<Trip> => {
   return new Promise((resolve) => {
     setTimeout(() => {

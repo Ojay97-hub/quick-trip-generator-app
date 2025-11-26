@@ -56,3 +56,4 @@ export const Logo = ({ size = 40, color = '#FF6B35', innerColor = '#042D4C' }: L
   );
 };
 
+
