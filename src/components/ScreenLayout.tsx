@@ -16,6 +16,7 @@ interface ScreenLayoutProps {
   onBack?: () => void;
   scrollable?: boolean;
   contentContainerStyle?: string; // Tailwind class
+  showLogo?: boolean;
 }
 
 export const ScreenLayout = ({ 
@@ -29,7 +30,8 @@ export const ScreenLayout = ({
   headerRight,
   onBack,
   scrollable = false,
-  contentContainerStyle = ''
+  contentContainerStyle = '',
+  showLogo = false
 }: ScreenLayoutProps) => {
   const insets = useSafeAreaInsets();
 
@@ -55,6 +57,7 @@ export const ScreenLayout = ({
              showBack={showBackButton} 
              rightElement={headerRight}
              onBack={onBack}
+             showLogo={showLogo}
            />
         </View>
       )}

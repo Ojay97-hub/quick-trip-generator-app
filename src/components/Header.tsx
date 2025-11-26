@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft } from 'lucide-react-native';
+import { Logo } from './Logo';
 
 interface HeaderProps {
   title?: string;
@@ -9,6 +10,7 @@ interface HeaderProps {
   rightElement?: React.ReactNode;
   onBack?: () => void;
   subtitle?: string;
+  showLogo?: boolean;
 }
 
 export const Header = ({ 
@@ -16,7 +18,8 @@ export const Header = ({
   showBack = false, 
   rightElement, 
   onBack,
-  subtitle
+  subtitle,
+  showLogo = false
 }: HeaderProps) => {
   const navigation = useNavigation();
 
@@ -35,6 +38,11 @@ export const Header = ({
           <TouchableOpacity onPress={handleBack} className="mr-4 p-2">
             <ArrowLeft size={24} color="white" />
           </TouchableOpacity>
+        )}
+        {showLogo && !showBack && (
+          <View className="mr-3">
+            <Logo size={32} color="white" innerColor="white" />
+          </View>
         )}
         <View>
           {title && (

@@ -1,6 +1,9 @@
 import React from 'react';
-import { TouchableOpacity, Text, ActivityIndicator, TouchableOpacityProps } from 'react-native';
+import { TouchableOpacity, Text, ActivityIndicator, TouchableOpacityProps, View } from 'react-native';
 import { styled } from 'nativewind';
+
+const StyledTouchableOpacity = styled(TouchableOpacity);
+const StyledText = styled(Text);
 
 interface ButtonProps extends TouchableOpacityProps {
   title: string;
@@ -8,6 +11,7 @@ interface ButtonProps extends TouchableOpacityProps {
   size?: 'sm' | 'md' | 'lg';
   loading?: boolean;
   icon?: React.ReactNode;
+  className?: string;
 }
 
 export const Button = ({ 
@@ -24,15 +28,15 @@ export const Button = ({
   const getBaseStyles = () => {
     switch (variant) {
       case 'primary':
-        return 'bg-primary border-primary';
-      case 'secondary':
         return 'bg-secondary border-secondary';
+      case 'secondary':
+        return 'bg-primary border-primary';
       case 'outline':
-        return 'bg-transparent border-primary border-2';
+        return 'bg-transparent border-secondary border-2';
       case 'ghost':
         return 'bg-transparent border-transparent';
       default:
-        return 'bg-primary border-primary';
+        return 'bg-secondary border-secondary';
     }
   };
 
@@ -42,7 +46,7 @@ export const Button = ({
       case 'secondary':
         return 'text-white';
       case 'outline':
-        return 'text-primary';
+        return 'text-secondary';
       case 'ghost':
         return 'text-secondary';
       default:
@@ -77,23 +81,23 @@ export const Button = ({
   };
 
   return (
-    <TouchableOpacity 
-      className={`rounded-xl flex-row justify-center items-center border ${getBaseStyles()} ${getSizeStyles()} ${disabled || loading ? 'opacity-70' : ''} ${className}`}
+    <StyledTouchableOpacity 
+      className={`rounded-xl flex-row justify-center items-center border ${getBaseStyles()} ${getSizeStyles()} ${disabled || loading ? 'opacity-70' : ''} ${className || ''}`}
       disabled={disabled || loading}
       activeOpacity={0.8}
       {...props}
     >
       {loading ? (
-        <ActivityIndicator color={variant === 'outline' ? '#FF6B35' : '#FFF'} />
+        <ActivityIndicator color={variant === 'outline' ? '#042D4C' : '#FFF'} />
       ) : (
         <>
-          {icon && <>{icon}</>}
-          <Text className={`font-bodyBold text-center ${getTextStyles()} ${getTextSizeStyles()} ${icon ? 'ml-2' : ''}`}>
+          {icon}
+          <StyledText className={`font-bodyBold text-center ${getTextStyles()} ${getTextSizeStyles()} ${icon ? 'ml-2' : ''}`}>
             {title}
-          </Text>
+          </StyledText>
         </>
       )}
-    </TouchableOpacity>
+    </StyledTouchableOpacity>
   );
 };
 
