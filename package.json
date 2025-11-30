@@ -6,7 +6,8 @@
     "start": "cross-env NODE_OPTIONS=--max-old-space-size=8192 expo start",
     "android": "cross-env NODE_OPTIONS=--max-old-space-size=8192 expo start --android",
     "ios": "cross-env NODE_OPTIONS=--max-old-space-size=8192 expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "xcode": "open ios/quicktripgeneratorapp.xcworkspace"
   },
   "dependencies": {
     "@expo-google-fonts/nunito-sans": "^0.4.2",
