@@ -60,28 +60,41 @@ const TravelOptionCard = ({ option }: { option: TravelOption }) => {
 const AccommodationCard = ({ accommodation }: { accommodation: Accommodation }) => {
   return (
     <View className="bg-white rounded-2xl p-4 border border-gray-200 mb-3">
-      <View className="flex-row justify-between items-start mb-2">
-        <View className="flex-1 pr-2">
-          <Text className="font-header text-lg text-secondary">{accommodation.name}</Text>
-          <Text className="font-body text-xs text-gray-500 mt-0.5">{accommodation.type}</Text>
+      <View className="flex-row">
+        {accommodation.imageUrl && (
+          <ImageBackground 
+            source={{ uri: accommodation.imageUrl }}
+            className="w-20 h-20 rounded-xl mr-3 overflow-hidden bg-gray-100"
+            resizeMode="cover"
+          />
+        )}
+        <View className="flex-1">
+          <View className="flex-row justify-between items-start mb-1">
+            <View className="flex-1 pr-2">
+              <Text className="font-header text-base text-secondary" numberOfLines={2}>{accommodation.name}</Text>
+              <Text className="font-body text-xs text-gray-500 mt-0.5">{accommodation.type}</Text>
+            </View>
+            <View className="flex-row items-center bg-warning/20 px-2 py-1 rounded-lg">
+              <Star size={12} color="#FFB703" fill="#FFB703" />
+              <Text className="text-xs font-bold ml-1 text-secondary">{accommodation.rating}</Text>
+            </View>
+          </View>
+          
+          <View className="flex-row items-center mb-1">
+            <MapPin size={14} color="#8E9AAF" />
+            <Text className="font-body text-xs text-gray-600 ml-1">{accommodation.distance}</Text>
+          </View>
+          <View className="flex-row items-center mb-2">
+            <Wallet size={14} color="#8E9AAF" />
+            <Text className="font-body text-xs text-gray-600 ml-1">{accommodation.priceRange}</Text>
+          </View>
         </View>
-        <View className="flex-row items-center bg-warning/20 px-2.5 py-1.5 rounded-lg">
-          <Star size={14} color="#FFB703" fill="#FFB703" />
-          <Text className="text-sm font-bold ml-1 text-secondary">{accommodation.rating}</Text>
-        </View>
       </View>
-      <View className="flex-row items-center mb-1.5">
-        <MapPin size={16} color="#8E9AAF" />
-        <Text className="font-body text-sm text-gray-600 ml-2">{accommodation.distance}</Text>
-      </View>
-      <View className="flex-row items-center mb-3">
-        <Wallet size={16} color="#8E9AAF" />
-        <Text className="font-body text-sm text-gray-600 ml-2">{accommodation.priceRange}</Text>
-      </View>
-      <View className="flex-row flex-wrap gap-2">
-        {accommodation.amenities.map((amenity, idx) => (
-          <View key={idx} className="bg-warning/10 border border-warning/20 px-3 py-1.5 rounded-lg">
-            <Text className="text-secondary text-xs font-body">{amenity}</Text>
+      
+      <View className="flex-row flex-wrap gap-2 mt-2">
+        {accommodation.amenities.slice(0, 3).map((amenity, idx) => (
+          <View key={idx} className="bg-warning/10 border border-warning/20 px-2.5 py-1 rounded-md">
+            <Text className="text-secondary text-[10px] font-body">{amenity}</Text>
           </View>
         ))}
       </View>

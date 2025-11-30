@@ -1,4 +1,6 @@
 import { TripPreferences, Trip, Activity, TravelOption, Accommodation } from '../types';
+import { getTravelTime } from '../services/googleMaps';
+import { searchHotels } from '../services/booking';
 
 const ANTHROPIC_API_KEY = process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY;
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
@@ -45,52 +47,107 @@ const generateMapsUrl = (destination: string): string => {
 };
 
 // Generate travel options based on preferences
-const generateTravelOptions = (preferences: TripPreferences, destination: string): TravelOption[] => {
+const generateTravelOptions = async (preferences: TripPreferences, destination: string): Promise<TravelOption[]> => {
   const { location, maxTravelTime } = preferences;
+  const options: TravelOption[] = [];
+
+  // 1. Try Google Maps for Driving
+  const drivingDetails = await getTravelTime(location, destination, 'driving');
   
-  // Estimate times based on max travel time
-  const trainTime = Math.max(30, Math.floor(maxTravelTime * 60 * 0.6)); // Trains are usually faster
-  const carTime = Math.floor(maxTravelTime * 60 * 0.8);
-  const busTime = maxTravelTime * 60; // Buses take full time
-  
-  const formatDuration = (mins: number): string => {
-    const hours = Math.floor(mins / 60);
-    const minutes = mins % 60;
-    if (hours === 0) return `${minutes}min`;
-    if (minutes === 0) return `${hours}h`;
-    return `${hours}h ${minutes}m`;
-  };
-  
-  // Estimate costs based on distance (rough approximation)
-  const baseCost = maxTravelTime * 15;
-  
-  return [
-    {
-      type: 'train',
-      duration: formatDuration(trainTime),
-      cost: `£${Math.round(baseCost * 1.2)}`,
-      fromLocation: location,
-      tags: ['Fast', 'Scenic', 'Direct']
-    },
-    {
+  if (drivingDetails) {
+    // Estimate fuel cost roughly: £0.15 per km
+    const distanceKm = parseFloat(drivingDetails.distance.replace(/[^0-9.]/g, '')) * 1.60934; // assuming miles if not km
+    const fuelCost = Math.round(distanceKm * 0.15);
+    
+    options.push({
       type: 'car',
-      duration: formatDuration(carTime),
-      cost: `£${Math.round(baseCost * 0.5)} - £${Math.round(baseCost * 0.7)} (fuel)`,
+      duration: drivingDetails.duration,
+      cost: `~£${fuelCost} (fuel)`,
       fromLocation: location,
       tags: ['Flexible', 'Stop anywhere']
-    },
-    {
-      type: 'bus',
-      duration: formatDuration(busTime),
-      cost: `£${Math.round(baseCost * 0.4)}`,
+    });
+  } else {
+    // Fallback estimation for car
+    const carTime = Math.floor(maxTravelTime * 60 * 0.8);
+    options.push({
+      type: 'car',
+      duration: formatDuration(carTime),
+      cost: '£20 - £40',
       fromLocation: location,
-      tags: ['Cheapest', 'Direct routes']
-    }
-  ];
+      tags: ['Flexible', 'Stop anywhere']
+    });
+  }
+
+  // 2. Try Google Maps for Transit (Train/Bus)
+  const transitDetails = await getTravelTime(location, destination, 'transit');
+  
+  if (transitDetails) {
+    options.push({
+      type: 'train',
+      duration: transitDetails.duration,
+      cost: 'Check operator', // Google API doesn't easily give price without advanced SKU
+      fromLocation: location,
+      tags: ['Fast', 'Eco-friendly']
+    });
+  } else {
+    // Fallback estimation for train
+    const trainTime = Math.max(30, Math.floor(maxTravelTime * 60 * 0.6));
+    options.push({
+      type: 'train',
+      duration: formatDuration(trainTime),
+      cost: '£30 - £60',
+      fromLocation: location,
+      tags: ['Fast', 'Scenic']
+    });
+  }
+
+  // 3. Add Bus option (usually no Google Maps for long distance bus easily distinguishing from train without steps parsing)
+  // We'll keep the estimation or try another call if needed, but estimation is fine for bus usually
+  const busTime = maxTravelTime * 60;
+  options.push({
+    type: 'bus',
+    duration: formatDuration(busTime),
+    cost: '£10 - £20',
+    fromLocation: location,
+    tags: ['Cheapest', 'Direct routes']
+  });
+
+  return options;
+};
+
+const formatDuration = (mins: number): string => {
+  const hours = Math.floor(mins / 60);
+  const minutes = mins % 60;
+  if (hours === 0) return `${minutes}min`;
+  if (minutes === 0) return `${hours}h`;
+  return `${hours}h ${minutes}m`;
 };
 
 // Generate accommodation suggestions
-const generateAccommodation = (destination: string, budgetCategory: string): Accommodation[] => {
+const generateAccommodation = async (destination: string, budgetCategory: string): Promise<Accommodation[]> => {
+  // 1. Try Booking.com API via RapidAPI
+  const today = new Date().toISOString().split('T')[0];
+  // Next day
+  const tomorrowDate = new Date();
+  tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+  const tomorrow = tomorrowDate.toISOString().split('T')[0];
+
+  // Determine max price based on budget category
+  let maxPrice: number | undefined = undefined;
+  if (budgetCategory === 'budget') {
+    maxPrice = 80; // Max £80/night for budget
+  } else if (budgetCategory === 'comfort') {
+    maxPrice = 180; // Max £180/night for comfort
+  }
+  // 'treat' has no strict upper limit, or we can set it high like 1000
+
+  const realHotels = await searchHotels(destination, today, tomorrow, 2, maxPrice);
+  
+  if (realHotels.length > 0) {
+    return realHotels;
+  }
+
+  // 2. Fallback to Mock Data if API fails or no keys
   const baseAccommodation: Accommodation[] = [];
   
   // Add luxury option
@@ -224,11 +281,11 @@ Include 3-5 activities with realistic times starting from 09:00. Use real place 
       };
     });
     
-    // Add travel options
-    trip.travelOptions = generateTravelOptions(preferences, trip.destination);
+    // Add travel options (Async with API calls)
+    trip.travelOptions = await generateTravelOptions(preferences, trip.destination);
     
-    // Add accommodation
-    trip.accommodation = generateAccommodation(trip.destination.split(',')[0], preferences.budgetCategory);
+    // Add accommodation (Async with API calls)
+    trip.accommodation = await generateAccommodation(trip.destination.split(',')[0], preferences.budgetCategory);
     
     // Add maps URL
     trip.mapsUrl = generateMapsUrl(trip.destination);
@@ -330,9 +387,9 @@ export const generateRandomFact = async (): Promise<string> => {
   return fallbacks[Math.floor(Math.random() * fallbacks.length)];
 };
 
-const mockTripGenerator = (preferences: TripPreferences): Promise<Trip> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
+const mockTripGenerator = async (preferences: TripPreferences): Promise<Trip> => {
+  return new Promise(async (resolve) => {
+    setTimeout(async () => {
       // Dynamic mock based on location if possible, otherwise generic
       const isLondon = preferences.location.toLowerCase() === 'london';
       const destination = isLondon ? "Brighton, UK" : "Bath, UK";
@@ -406,6 +463,9 @@ const mockTripGenerator = (preferences: TripPreferences): Promise<Trip> => {
         }
       ];
 
+      const travelOptions = await generateTravelOptions(preferences, destination);
+      const accommodation = await generateAccommodation(destination.split(',')[0], preferences.budgetCategory);
+
       resolve({
         destination,
         subtitle,
@@ -419,8 +479,8 @@ const mockTripGenerator = (preferences: TripPreferences): Promise<Trip> => {
           "Check train times in advance",
           "Bring a portable charger"
         ],
-        travelOptions: generateTravelOptions(preferences, destination),
-        accommodation: generateAccommodation(destination.split(',')[0], preferences.budgetCategory),
+        travelOptions,
+        accommodation,
         mapsUrl: generateMapsUrl(destination)
       });
     }, 1500);
