@@ -83,8 +83,22 @@ const TravelOptionCard = ({ option, destination }: { option: TravelOption; desti
 
 // Accommodation card component
 const AccommodationCard = ({ accommodation }: { accommodation: Accommodation }) => {
+  const handleOpenBooking = async () => {
+    if (accommodation.bookingUrl) {
+      try {
+        await Linking.openURL(accommodation.bookingUrl);
+      } catch (error) {
+        console.error('Error opening booking URL:', error);
+      }
+    }
+  };
+
   return (
-    <View className="bg-white rounded-2xl p-4 border border-gray-200 mb-3">
+    <TouchableOpacity 
+      onPress={handleOpenBooking}
+      className="bg-white rounded-2xl p-4 border border-gray-200 mb-3 active:opacity-80"
+      disabled={!accommodation.bookingUrl}
+    >
       <View className="flex-row">
         {accommodation.imageUrl && (
           <ImageBackground 
@@ -113,6 +127,12 @@ const AccommodationCard = ({ accommodation }: { accommodation: Accommodation }) 
             <Wallet size={14} color="#8E9AAF" />
             <Text className="font-body text-xs text-gray-600 ml-1">{accommodation.priceRange}</Text>
           </View>
+          {accommodation.bookingUrl && (
+            <View className="flex-row items-center mt-1">
+              <ChevronRight size={14} color="#FF6B35" />
+              <Text className="text-primary font-bodyBold text-xs ml-1">Book on Booking.com</Text>
+            </View>
+          )}
         </View>
       </View>
       
@@ -123,7 +143,7 @@ const AccommodationCard = ({ accommodation }: { accommodation: Accommodation }) 
           </View>
         ))}
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 

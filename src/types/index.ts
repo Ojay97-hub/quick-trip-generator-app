@@ -38,6 +38,8 @@ export interface Accommodation {
   distance: string; // e.g. "0.3 miles from centre"
   priceRange: string; // e.g. "£180 - £320/night"
   amenities: string[]; // e.g. ["Spa", "Pool", "Restaurant"]
+  bookingUrl?: string; // Booking.com URL
+  imageUrl?: string; // Hotel image URL
 }
 
 export interface Trip {

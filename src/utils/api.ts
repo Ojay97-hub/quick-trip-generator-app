@@ -149,15 +149,18 @@ const generateAccommodation = async (destination: string, budgetCategory: string
 
   // 2. Fallback to Mock Data if API fails or no keys
   const baseAccommodation: Accommodation[] = [];
+  const encodedDestination = encodeURIComponent(destination);
+  // Reuse today and tomorrow from above
   
-  // Add luxury option
+  // Add luxury option - use absolute simplest URL format (location only)
   baseAccommodation.push({
     name: `The ${destination} Grand Hotel`,
     type: 'Luxury Hotel',
     rating: 4.8,
     distance: '0.3 miles from centre',
     priceRange: '£180 - £320/night',
-    amenities: ['Spa', 'Pool', 'Restaurant']
+    amenities: ['Spa', 'Pool', 'Restaurant'],
+    bookingUrl: `https://www.booking.com/searchresults.html?ss=${encodedDestination}`
   });
   
   // Add mid-range option
@@ -167,7 +170,8 @@ const generateAccommodation = async (destination: string, budgetCategory: string
     rating: 4.3,
     distance: '0.2 miles from centre',
     priceRange: '£95 - £150/night',
-    amenities: ['Kitchen', 'Parking', 'WiFi']
+    amenities: ['Kitchen', 'Parking', 'WiFi'],
+    bookingUrl: `https://www.booking.com/searchresults.html?ss=${encodedDestination}`
   });
   
   // Add budget option
@@ -177,7 +181,8 @@ const generateAccommodation = async (destination: string, budgetCategory: string
     rating: 4.1,
     distance: '0.5 miles from centre',
     priceRange: '£35 - £55/night',
-    amenities: ['WiFi', 'Lounge', 'Shared Kitchen']
+    amenities: ['WiFi', 'Lounge', 'Shared Kitchen'],
+    bookingUrl: `https://www.booking.com/searchresults.html?ss=${encodedDestination}`
   });
   
   return baseAccommodation;

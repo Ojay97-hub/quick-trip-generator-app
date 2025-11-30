@@ -76,15 +76,26 @@ export const searchHotels = async (
     }
 
     // Map to our Accommodation type (Top 3)
-    return results.slice(0, 3).map((hotel: any) => ({
-      name: hotel.hotel_name,
-      type: hotel.accommodation_type_name || 'Hotel',
-      rating: hotel.review_score || 0,
-      distance: `${hotel.distance_to_cc} km from centre`,
-      priceRange: `£${Math.round(hotel.min_total_price)} per night`,
-      amenities: ['WiFi', 'Parking'], // API doesn't always return these easily in list view
-      imageUrl: hotel.main_photo_url
-    }));
+    return results.slice(0, 3).map((hotel: any) => {
+      // Generate booking.com URL - use simplest possible format that always works
+      const location = encodeURIComponent(cleanLocation);
+      
+      // Use the absolute simplest search URL - just location
+      // This will show search results for the location, user can then find the specific hotel
+      // Booking.com will handle dates and guests on their end
+      const bookingUrl = `https://www.booking.com/searchresults.html?ss=${location}`;
+
+      return {
+        name: hotel.hotel_name,
+        type: hotel.accommodation_type_name || 'Hotel',
+        rating: hotel.review_score || 0,
+        distance: `${hotel.distance_to_cc} km from centre`,
+        priceRange: `£${Math.round(hotel.min_total_price)} per night`,
+        amenities: ['WiFi', 'Parking'], // API doesn't always return these easily in list view
+        imageUrl: hotel.main_photo_url,
+        bookingUrl: bookingUrl
+      };
+    });
 
   } catch (error) {
     console.error('Error fetching Booking.com data:', error);
