@@ -18,8 +18,15 @@ import { useSavedTrips } from '../hooks/useSavedTrips';
 type TripResultScreenRouteProp = RouteProp<RootStackParamList, 'TripResult'>;
 type TripResultScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'TripResult'>;
 
+// Helper function to generate Google Maps URL based on travel mode
+const getGoogleMapsUrl = (origin: string, destination: string, mode: 'train' | 'car' | 'bus'): string => {
+  // Map travel types to Google Maps travel modes
+  const travelMode = mode === 'car' ? 'driving' : 'transit';
+  return `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&travelmode=${travelMode}`;
+};
+
 // Travel option card component
-const TravelOptionCard = ({ option }: { option: TravelOption }) => {
+const TravelOptionCard = ({ option, destination }: { option: TravelOption; destination: string }) => {
   const getIcon = () => {
     switch (option.type) {
       case 'train':
@@ -31,11 +38,29 @@ const TravelOptionCard = ({ option }: { option: TravelOption }) => {
     }
   };
 
+  const handleOpenDirections = async () => {
+    const url = getGoogleMapsUrl(option.fromLocation, destination, option.type);
+    try {
+      await Linking.openURL(url);
+    } catch (error) {
+      console.error('Error opening Google Maps:', error);
+    }
+  };
+
   return (
-    <View className="bg-white rounded-2xl p-4 border border-gray-200 mb-3">
-      <View className="flex-row items-center mb-3">
-        {getIcon()}
-        <Text className="font-header text-lg text-secondary ml-2 capitalize">{option.type}</Text>
+    <TouchableOpacity 
+      onPress={handleOpenDirections}
+      className="bg-white rounded-2xl p-4 border border-gray-200 mb-3 active:opacity-80"
+    >
+      <View className="flex-row items-center justify-between mb-3">
+        <View className="flex-row items-center">
+          {getIcon()}
+          <Text className="font-header text-lg text-secondary ml-2 capitalize">{option.type}</Text>
+        </View>
+        <View className="flex-row items-center">
+          <Navigation size={16} color="#FF6B35" />
+          <Text className="text-primary font-bodyBold text-xs ml-1">Get directions</Text>
+        </View>
       </View>
       <View className="flex-row items-center mb-2">
         <Clock size={16} color="#8E9AAF" />
@@ -52,7 +77,7 @@ const TravelOptionCard = ({ option }: { option: TravelOption }) => {
           </View>
         ))}
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 
@@ -314,7 +339,7 @@ export const TripResultScreen = () => {
             {showTravelOptions && (
               <View>
                 {trip.travelOptions.map((option, index) => (
-                  <TravelOptionCard key={index} option={option} />
+                  <TravelOptionCard key={index} option={option} destination={trip.destination} />
                 ))}
               </View>
             )}
